@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Literasi Digital Salwa - Admin & User</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --secondary: #06b6d4;
+      --accent: #f43f5e;
+      --success: #10b981;
+      --bg: #f8fafc;
+      --text: #1e293b;
+    }
+
+    body { font-family: 'Poppins', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 90px; }
+
+    /* Login Screen */
+    #login-screen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .login-card {
+      background: white; width: 100%; max-width: 400px; padding: 40px 30px;
+      border-radius: 32px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    }
+
+    /* Header */
+    .app-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 40px 24px 60px; border-radius: 0 0 40px 40px; color: white; text-align: center;
+    }
+
+    .stats-section { margin-top: -30px; padding: 0 20px; }
+    .stats-card {
+      background: white; border-radius: 20px; padding: 15px;
+      display: flex; justify-content: space-around; box-shadow: 0 10px 15px rgba(0,0,0,0.05);
+    }
+
+    /* Cards */
+    .module-card {
+      background: white; border-radius: 24px; border: none; overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: 100%; transition: 0.3s; position: relative;
+    }
+    .img-container { position: relative; width: 100%; padding-top: 56%; background: #e2e8f0; }
+    .img-container img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+    
+    .badge-bab { position: absolute; top: 12px; left: 12px; background: var(--primary); color: white; padding: 4px 12px; border-radius: 10px; font-size: 0.7rem; font-weight: 700; }
+    
+    .btn-action-group { display: flex; gap: 8px; margin-top: 15px; }
+    .btn-m { flex: 1; border: none; padding: 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .btn-read { background: #eef2ff; color: var(--primary); }
+    .btn-quiz { background: #f0fdf4; color: var(--success); }
+    .btn-admin-edit { background: #fff7ed; color: #ea580c; }
+    .btn-admin-del { background: #fef2f2; color: #dc2626; }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 75px;
+      background: white; display: flex; justify-content: space-around;
+      align-items: center; box-shadow: 0 -10px 20px rgba(0,0,0,0.05);
+      border-radius: 20px 20px 0 0; z-index: 1000;
+    }
+    .nav-btn { background: none; border: none; color: #94a3b8; font-size: 0.65rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; }
+    .nav-btn.active { color: var(--primary); }
+
+    .page { display: none; padding-top: 20px; }
+    .page.active { display: block; }
+
+    /* Video & Content UI */
+    .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 15px; background: #000; margin-bottom: 20px; }
+    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .modal-content { border-radius: 28px; border: none; }
+    .article-body h5 { color: var(--primary); font-weight: 700; margin-top: 20px; }
+    .illustration-box { background: #f1f5f9; padding: 15px; border-radius: 15px; border-left: 5px solid var(--secondary); margin: 15px 0; font-style: italic; }
+
+    /* Admin FAB */
+    .fab-add { position: fixed; bottom: 90px; right: 20px; width: 60px; height: 60px; border-radius: 30px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3); border: none; z-index: 999; }
+    
+    /* Quiz UI */
+    .quiz-option { background: #f1f5f9; border: 2px solid transparent; border-radius: 15px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+    .quiz-option.correct { background: #dcfce7; border-color: #22c55e; }
+    .quiz-option.wrong { background: #fee2e2; border-color: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="text-primary mb-3"><i data-lucide="shield-check" size="48"></i></div>
+      <h4 class="fw-bold">Literasi Digital</h4>
+      <p class="text-muted small">Pilih Mode Masuk</p>
+      <input type="text" id="username" class="form-control mb-3 py-3 rounded-4 px-4" placeholder="Nama Anda">
+      <div class="d-grid gap-2">
+        <button onclick="startApp('user')" class="btn btn-primary py-3 rounded-4 fw-bold">Masuk sebagai Siswa</button>
+        <button onclick="checkAdmin()" class="btn btn-outline-dark py-3 rounded-4 fw-bold">Masuk sebagai Admin</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="main-app" style="display: none;">
+    <div class="app-header">
+      <h5 class="fw-bold mb-0">Portal Belajar Digital</h5>
+      <p class="small opacity-75">Halo, <span id="user-display">User</span></p>
+    </div>
+
+    <div class="stats-section">
+      <div class="stats-card">
+        <div class="text-center"><span class="fw-bold d-block text-primary" id="stat-count">0</span><small class="text-muted">MATERI</small></div>
+        <div class="text-center"><span class="fw-bold d-block text-success" id="stat-score">0</span><small class="text-muted">SKOR</small></div>
+      </div>
+    </div>
+
+    <div id="page-user" class="page active container">
+      <div id="module-list-user" class="row g-3"></div>
+    </div>
+
+    <div id="page-admin" class="page container">
+      <h6 class="fw-bold mb-3 px-2">Kelola Konten Materi</h6>
+      <div id="module-list-admin" class="row g-3"></div>
+      <button class="fab-add" onclick="openAdminModal()"><i data-lucide="plus"></i></button>
+    </div>
+
+    <nav class="bottom-nav">
+      <button onclick="switchView('user')" id="nav-user" class="nav-btn active"><i data-lucide="book-open"></i>Belajar</button>
+      <button onclick="switchView('admin')" id="nav-admin" class="nav-btn d-none"><i data-lucide="settings"></i>Admin</button>
+      <button onclick="location.reload()" class="nav-btn"><i data-lucide="log-out"></i>Keluar</button>
+    </nav>
+  </div>
+
+  <div class="modal fade" id="materiModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0"><h5 class="fw-bold" id="mTitle"></h5><button class="btn-close" data-bs-dismiss="modal" onclick="stopVideo()"></button></div>
+        <div class="modal-body">
+          <div id="videoContainer" class="video-wrapper d-none">
+            <iframe id="ytFrame" src="" frameborder="0" allowfullscreen></iframe>
+          </div>
+          <div id="mBody" class="article-body"></div>
+        </div>
+        <div class="p-3"><button class="btn btn-primary w-100 py-3 rounded-4 fw-bold" data-bs-dismiss="modal" onclick="stopVideo()">Selesai Membaca</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="quizModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0"><h5 class="fw-bold">Kuis Pemahaman</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <p id="qText" class="fw-bold mb-3"></p>
+          <div id="qOptions"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="adminModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header border-0"><h5 class="fw-bold">Edit Materi</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+          <input type="hidden" id="edit-id">
+          <div class="row">
+            <div class="col-md-6 mb-3"><label class="small fw-bold">Nomor Bab (BAB 1)</label><input type="text" id="adm-bab" class="form-control rounded-3"></div>
+            <div class="col-md-6 mb-3"><label class="small fw-bold">Judul</label><input type="text" id="adm-title" class="form-control rounded-3"></div>
+          </div>
+          <div class="mb-3"><label class="small fw-bold">Embed Link YouTube</label><input type="text" id="adm-video" class="form-control rounded-3" placeholder="https://www.youtube.com/embed/..."></div>
+          <div class="mb-3"><label class="small fw-bold">Isi Materi (Rinci)</label><textarea id="adm-content" class="form-control rounded-3" rows="6"></textarea></div>
+          <hr>
+          <h6>Pengaturan Kuis</h6>
+          <div class="mb-3"><input type="text" id="adm-q" class="form-control rounded-3" placeholder="Pertanyaan"></div>
+          <div class="row g-2">
+            <div class="col-4"><input type="text" id="adm-a0" class="form-control rounded-3" placeholder="Opsi 1"></div>
+            <div class="col-4"><input type="text" id="adm-a1" class="form-control rounded-3" placeholder="Opsi 2"></div>
+            <div class="col-4"><input type="text" id="adm-a2" class="form-control rounded-3" placeholder="Opsi 3"></div>
+          </div>
+          <div class="mt-2 small text-muted">Indeks Jawaban Benar (0-2): <input type="number" id="adm-c" class="form-control d-inline-block w-25" min="0" max="2"></div>
+        </div>
+        <div class="p-3"><button onclick="saveMateri()" class="btn btn-primary w-100 py-3 rounded-4 fw-bold">Simpan ke Cloud</button></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+    const firebaseConfig = JSON.parse(__firebase_config);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'digital-literacy-salwa-v1';
+
+    let currentModules = [];
+    let isAdminMode = false;
+    let score = 0;
+    let adminModal, materiModal, quizModal;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      adminModal = new bootstrap.Modal(document.getElementById('adminModal'));
+      materiModal = new bootstrap.Modal(document.getElementById('materiModal'));
+      quizModal = new bootstrap.Modal(document.getElementById('quizModal'));
+      lucide.createIcons();
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) loadData();
+      else signInAnonymously(auth);
+    });
+
+    window.startApp = (mode) => {
+      const name = document.getElementById('username').value;
+      if (!name) return alert("Ketik namamu dulu!");
+      document.getElementById('user-display').innerText = name;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('main-app').style.display = 'block';
+    };
+
+    window.checkAdmin = () => {
+      const pw = prompt("Sandi Admin:");
+      if (pw === "salwa123") {
+        isAdminMode = true;
+        document.getElementById('nav-admin').classList.remove('d-none');
+        window.startApp('admin');
+        window.switchView('admin');
+      } else alert("Salah!");
+    };
+
+    function loadData() {
+      const colPath = collection(db, 'artifacts', appId, 'public', 'data', 'modules');
+      onSnapshot(colPath, (snap) => {
+        currentModules = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderUI();
+      });
+    }
+
+    function renderUI() {
+      const userList = document.getElementById('module-list-user');
+      const adminList = document.getElementById('module-list-admin');
+      userList.innerHTML = adminList.innerHTML = '';
+      document.getElementById('stat-count').innerText = currentModules.length;
+
+      currentModules.sort((a,b) => a.bab.localeCompare(b.bab)).forEach(m => {
+        userList.innerHTML += `
+          <div class="col-12 col-md-6">
+            <div class="module-card shadow-sm">
+              <div class="img-container">
+                <span class="badge-bab">${m.bab}</span>
+                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400">
+              </div>
+              <div class="p-3">
+                <h6 class="module-title">${m.title}</h6>
+                <div class="btn-action-group">
+                  <button class="btn-m btn-read" onclick="openMateri('${m.id}')">Baca & Video</button>
+                  <button class="btn-m btn-quiz" onclick="openQuiz('${m.id}')">Kuis</button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+
+        adminList.innerHTML += `
+          <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-3 mb-2">
+              <div class="d-flex justify-content-between">
+                <div><span class="badge bg-primary">${m.bab}</span><br><strong>${m.title}</strong></div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-sm btn-outline-warning" onclick="editMateri('${m.id}')"><i data-lucide="edit-3" size="16"></i></button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="deleteMateri('${m.id}')"><i data-lucide="trash-2" size="16"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>`;
+      });
+      lucide.createIcons();
+    }
+
+    window.saveMateri = async () => {
+      const id = document.getElementById('edit-id').value || crypto.randomUUID();
+      const data = {
+        bab: document.getElementById('adm-bab').value,
+        title: document.getElementById('adm-title').value,
+        video: document.getElementById('adm-video').value,
+        content: document.getElementById('adm-content').value,
+        q: document.getElementById('adm-q').value,
+        a: [document.getElementById('adm-a0').value, document.getElementById('adm-a1').value, document.getElementById('adm-a2').value],
+        c: parseInt(document.getElementById('adm-c').value) || 0
+      };
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'modules', id), data);
+      adminModal.hide();
+    };
+
+    window.editMateri = (id) => {
+      const m = currentModules.find(x => x.id === id);
+      document.getElementById('edit-id').value = m.id;
+      document.getElementById('adm-bab').value = m.bab;
+      document.getElementById('adm-title').value = m.title;
+      document.getElementById('adm-video').value = m.video;
+      document.getElementById('adm-content').value = m.content;
+      document.getElementById('adm-q').value = m.q;
+      m.a.forEach((ans, i) => document.getElementById('adm-a'+i).value = ans);
+      document.getElementById('adm-c').value = m.c;
+      adminModal.show();
+    };
+
+    window.deleteMateri = async (id) => { if(confirm("Hapus?")) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'modules', id)); };
+
+    window.openMateri = (id) => {
+      const m = currentModules.find(x => x.id === id);
+      document.getElementById('mTitle').innerText = m.title;
+      document.getElementById('mBody').innerHTML = m.content;
+      const vBox = document.getElementById('videoContainer');
+      const frame = document.getElementById('ytFrame');
+      if(m.video) { vBox.classList.remove('d-none'); frame.src = m.video; }
+      else { vBox.classList.add('d-none'); frame.src = ""; }
+      materiModal.show();
+    };
+
+    window.stopVideo = () => { document.getElementById('ytFrame').src = ""; };
+
+    window.openQuiz = (id) => {
+      const m = currentModules.find(x => x.id === id);
+      document.getElementById('qText').innerText = m.q;
+      const opts = document.getElementById('qOptions');
+      opts.innerHTML = '';
+      m.a.forEach((ans, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'quiz-option';
+        btn.innerText = ans;
+        btn.onclick = () => {
+          if(i === m.c) { btn.classList.add('correct'); score += 10; document.getElementById('stat-score').innerText = score; setTimeout(() => quizModal.hide(), 1000); }
+          else btn.classList.add('wrong');
+        };
+        opts.appendChild(btn);
+      });
+      quizModal.show();
+    };
+
+    window.openAdminModal = () => { document.getElementById('edit-id').value = ""; adminModal.show(); };
+    window.switchView = (v) => {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-'+v).classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('nav-'+v).classList.add('active');
+    };
+  </script>
+</body>
+</html>
